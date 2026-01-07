@@ -8,6 +8,7 @@ permissions:
   pull-requests: write
   issues: write
   contents: read
+  statuses: write
 
 jobs:
   verify:
@@ -27,14 +28,17 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
-            return pr.data.created_at;
-          result-encoding: string
+            return {
+              created_at: pr.data.created_at,
+              head_sha: pr.data.head.sha
+            };
+          result-encoding: json
 
       - name: Verify Replay
         id: verify_step
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
-          PR_CREATED_AT: ${{ steps.pr_details.outputs.result }}
+          PR_CREATED_AT: ${{ fromJson(steps.pr_details.outputs.result).created_at }}
         run: |
           python3 .github/scripts/verify_victory.py
         continue-on-error: true
@@ -45,6 +49,17 @@ jobs:
         with:
           script: |
             const winner = "${{ steps.verify_step.outputs.winner }}";
+            const sha = "${{ fromJson(steps.pr_details.outputs.result).head_sha }}";
+            
+            // Set Success Status
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: sha,
+              state: 'success',
+              description: `Victory by ${winner}!`,
+              context: 'pokemon/battle'
+            });
             
             // Remove Label
             await github.rest.issues.removeLabel({
