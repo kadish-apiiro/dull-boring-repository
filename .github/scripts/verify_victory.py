@@ -16,12 +16,15 @@ def main():
     print(f"Processing comment: {comment_body[:50]}...")
     
     # Extract URL
-    url_pattern = r"https:\/\/replay.pokemonshowdown.com\/([\w-]+)"
+    # Allow http/https and optional www
+    url_pattern = r"https?:\/\/(?:www\.)?replay\.pokemonshowdown\.com\/([\w-]+)"
     match = re.search(url_pattern, comment_body)
     
     if not match:
         print("No Pokemon Showdown replay URL found.")
-        sys.exit(1) # Not an error, just no URL, so we don't do anything
+        # We don't exit with error, but we don't output verified=true.
+        # This is correct for random comments.
+        sys.exit(0)
 
     replay_id = match.group(1)
     json_url = f"https://replay.pokemonshowdown.com/{replay_id}.json"
