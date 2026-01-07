@@ -35,7 +35,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "## 🛑 A Wild PR appeared!\n\nTo merge this PR, you must defeat a trainer in a **Pokemon Showdown Random Battle**!\n\n### Instructions:\n1. Go to [Pokemon Showdown](https://play.pokemonshowdown.com/ladder) and play a **Gen 9 Random Battle**.\n2. **WIN** the battle.\n3. Copy the **Replay URL** (e.g., `https://replay.pokemonshowdown.com/gen9randombattle-123456789`).\n4. Paste the link in a comment on this PR.\n\n*Gotta catch 'em all!*"
+              body: "## 🛑 A Wild PR appeared!\n\nTo merge this PR, you must defeat a trainer in a **Pokemon Showdown Random Battle**!\n\n### ⚔️ [CLICK HERE TO START BATTLE](https://play.pokemonshowdown.com/ladder?format=gen9randombattle) ⚔️\n\n**Instructions:**\n1. Click the link above to open the battle.\n2. **WIN** the battle.\n3. Copy the **Replay URL** (e.g., `https://replay.pokemonshowdown.com/gen9randombattle-123456789`).\n4. Paste the link in a comment on this PR.\n\n*Gotta catch 'em all!*"
             })
       
       - name: Label PR
@@ -48,4 +48,3 @@ jobs:
               repo: context.repo.repo,
               labels: ['blocked-by-pokemon']
             })
-
