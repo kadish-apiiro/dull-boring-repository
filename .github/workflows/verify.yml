@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   verify:
-    if: ${{ github.event.issue.pull_request && contains(github.event.issue.labels.*.name, 'blocked-by-pokemon') }}
+    if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -60,7 +60,7 @@ jobs:
               description: `Victory by ${winner}!`,
               context: 'pokemon/battle'
             });
-            
+
             // Remove Label
             await github.rest.issues.removeLabel({
               owner: context.repo.owner,
@@ -98,4 +98,3 @@ jobs:
               issue_number: context.issue.number,
               body: `❌ **Victory verification failed!**\n\nReason: ${reason}\n\nPlease try again with a *new* victory!`
             });
-
