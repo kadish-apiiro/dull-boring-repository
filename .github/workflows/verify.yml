@@ -1,0 +1,86 @@
+name: Verify Victory
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  verify:
+    if: ${{ github.event.issue.pull_request && contains(github.event.issue.labels.*.name, 'blocked-by-pokemon') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get PR Details
+        id: pr_details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return pr.data.created_at;
+          result-encoding: string
+
+      - name: Verify Replay
+        id: verify_step
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_CREATED_AT: ${{ steps.pr_details.outputs.result }}
+        run: |
+          python3 .github/scripts/verify_victory.py
+        continue-on-error: true
+
+      - name: Handle Success
+        if: steps.verify_step.outputs.verified == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const winner = "${{ steps.verify_step.outputs.winner }}";
+            
+            // Remove Label
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              name: 'blocked-by-pokemon'
+            });
+
+            // Comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🏆 It's Super Effective!\n\n**${winner}** won the battle! \n\nThe Gym Leader is impressed. Access to the codebase granted.`
+            });
+
+            // Approve PR
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: 'APPROVE',
+              body: 'Automated approval via Pokemon Battle Victory.'
+            });
+
+      - name: Handle Failure
+        if: steps.verify_step.outputs.failure_reason
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reason = "${{ steps.verify_step.outputs.failure_reason }}";
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `❌ **Victory verification failed!**\n\nReason: ${reason}\n\nPlease try again with a *new* victory!`
+            });
+
