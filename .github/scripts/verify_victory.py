@@ -15,6 +15,7 @@ def main():
     
     print(f"Processing comment: {comment_body[:50]}...")
     
+    
     # Extract URL
     # Allow http/https and optional www
     url_pattern = r"https?:\/\/(?:www\.)?replay\.pokemonshowdown\.com\/([\w-]+)"
